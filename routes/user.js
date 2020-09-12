@@ -3,13 +3,17 @@ const router = Router();
 import bcrypt from 'bcryptjs';
 import User from "../models/User.js";
 
-//import AddUserRequest
+//import Requests
 import AddUserRequest from "../requests/AddUserRequest.js";
+import LoginRequest from "../requests/LoginRequest.js";
 
+
+//Get all users
 router.get('/', (req, res) => {
     res.send('all users');
 })
 
+//Register a new user
 router.post('/register', async (req, res) => {
 
     const {error} = AddUserRequest.validate(req.body)
@@ -24,7 +28,6 @@ router.post('/register', async (req, res) => {
     const emailExist = await User.findOne({email: req.body.email});
 
     if (emailExist) {
-        console.log(emailExist)
         return res.status(400).json({message: 'Email already exists'});
     }
 
@@ -48,9 +51,37 @@ router.post('/register', async (req, res) => {
         });// bcrypt.hash
     }); //bcrypt.gensalt
 
-
-
 })
 
+//Login
+router.post('/login', async (req, res) => {
+
+    const {error} = LoginRequest.validate(req.body)
+    if (error){
+        return res.status(400).json(error.details[0].message);
+    }
+
+    //validation passed
+              //Load hash from db
+    const user = await User.findOne({email: req.body.email});
+
+    //if user is found
+    if (user){
+         await bcrypt.compare(req.body.password, user.password, function(err, pass) {
+            if (err) throw err;
+            if (pass){
+                res.status(200).json(`user is logged in`);
+            } else{
+                res.status(400).json(`password is incorrect`);
+            }
+
+        });
+    }else { //if email does not exist
+        res.status(404).json(`This user does not exist`);
+    }
+
+
+
+});
 
 export default router;
