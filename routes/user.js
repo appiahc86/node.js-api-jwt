@@ -1,6 +1,7 @@
 import Router from 'express';
 const router = Router();
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from "../models/User.js";
 
 //import Requests
@@ -70,8 +71,11 @@ router.post('/login', async (req, res) => {
          await bcrypt.compare(req.body.password, user.password, function(err, pass) {
             if (err) throw err;
             if (pass){
-                res.status(200).json(`user is logged in`);
-            } else{
+                //Create a token for the user
+                const token = jwt.sign({user: user}, process.env.TOKEN_SECRET)
+
+                res.header('auth-token', token).status(200).json(`user is logged in. token: ${token}`);
+            } else{ //Passwords do not match
                 res.status(400).json(`password is incorrect`);
             }
 
@@ -79,8 +83,6 @@ router.post('/login', async (req, res) => {
     }else { //if email does not exist
         res.status(404).json(`This user does not exist`);
     }
-
-
 
 });
 

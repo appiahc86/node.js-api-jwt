@@ -30,7 +30,10 @@ app.set('view engine', 'ejs')
 app.use(express.static(path.join(__dirname, 'public')));
 
 import userRouter from './routes/user.js';
-app.use('/users', userRouter);
+app.use('/api/users', userRouter);
+
+import postRouter from './routes/posts.js';
+app.use('/api/posts', postRouter);
 
 app.get('/', (req, res) => {
     res.render('index')
